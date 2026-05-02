@@ -2,12 +2,13 @@ name: Actualizar Dashboard
 
 on:
   schedule:
-    - cron: "0 * * * *"   # Cada hora
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -27,14 +28,15 @@ jobs:
         run: pip install urllib3
 
       - name: Generar dashboard desde Compago API
+        timeout-minutes: 10
         env:
           COMPAGO_API_KEY: ${{ secrets.COMPAGO_API_KEY }}
-        run: python fetch_compago.py "PRONOIA" "UTC-6" "${{ secrets.DASHBOARD_PASSWORD }}" 365
+        run: python fetch_compago.py "PRONOIA" "UTC-6" "${{ secrets.DASHBOARD_PASSWORD }}"
 
-      - name: Commit index.html actualizado
+      - name: Commit actualizado
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html
+          git add index.html transactions.db
           git diff --cached --quiet || git commit -m "Dashboard actualizado $(date +'%Y-%m-%d %H:%M UTC')"
           git push
